@@ -40,7 +40,7 @@ canvas.prototype.drawNew = function( x, y ) {
 };
 
 canvas.prototype.drawEnd = function() {
-  this.buffer = [];
+  this.buffer = []; //Clear the buffer
 };
 
 canvas.prototype.drawStart = function() {
@@ -126,10 +126,10 @@ canvas.prototype.mouseMove = function( e ){
   _this.current_pos.y = y = e.pageY;
   if( _this.state ) {
     if( _this.lastdrawn ) {
-      _this.drawNew( x, y );
+      _this.drawNew( x - 7, y - 7 );
     }
     else {
-      _this.lastdrawn = { 'x': x, 'y': y };
+      _this.lastdrawn = { 'x': x - 7, 'y': y - 7 };
     }
   }
   resize = _this.isResizing();
@@ -142,8 +142,8 @@ canvas.prototype.mouseMove = function( e ){
         }
         break;
       case 'down':
-        this.changeCursor( 'down-resize' );
-        if( _this.down ) {
+        _this.changeCursor( 'down-resize' );
+        if( _this.resizing.down ) {
           _this.height = this.height = y;
         }
         break;
