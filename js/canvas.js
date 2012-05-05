@@ -1,6 +1,6 @@
 /*
  * Define a global canvas object
- * everything else should be tied to this object to reduce namespace pollution
+ * everything else should be tied to this object to prevent namespace pollution
 */
 
 function init() {
@@ -11,6 +11,12 @@ canvas = function( container, height, width ) {
   this.state = false;
   this.height = height;
   this.width = width;
+  this.resizing = { 'right': false, 'down': false };
+  this.current_pos = { 'x': 0, 'y': 0 };
+  this.buffer = [];
+  this.lastdrawn = null;
+
+  // Initialize the canvas element object
   this.container = container = document.getElementById( container );
   this.container._model = this;
   context = this.context = container.getContext( '2d' );
@@ -22,10 +28,7 @@ canvas = function( container, height, width ) {
   container.onmouseup = this.mouseUp;
   container.onmousedown = this.mouseDown;
   container.onmouseout = this.mouseOut;
-  this.resizing = { 'right': false, 'down': false };
-  this.current_pos = { 'x': 0, 'y': 0 };
-  this.buffer = [];
-  this.lastdrawn = null;
+  
 };
 
 canvas.prototype.drawNew = function( x, y ) {
