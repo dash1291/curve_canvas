@@ -16,7 +16,9 @@ Circular = function( path, length ) {
 
   matB[0] = ( path[0].x ^ 2 - path[1].x ^ 2 ) + ( path[0].y ^ 2  - path[1].y ^ 2 );
   matB[1] = ( path[1].x ^ 2 - path[2].x ^ 2 ) + ( path[1].y ^ 2  - path[2].y ^ 2 );
-  this.solveLinearEquations( matA, matB );
+  var centre = this.solveLinearEquations( matA, matB );
+  var radius = ( ( centre.h - path[0].x ) ^ 2 + (centre.k - path[0].y ) ^ 2 ) ^ 0.5;
+  return this.generatePath( centre, radius );
 }
 
 /**
@@ -39,8 +41,18 @@ Circular.prototype.solveLinearEquations = function( matrix1, matrix2 ) {
   var h = det2 / det1;
   var k = det3 / det1;
   return { 'h': h, 'k': k };
-}
+};
 
-Circular.prototype.generatePath = function( centre ) {
-  
-}
+Circular.prototype.generatePath = function( centre, radius ) {
+  var path = this.path;
+  var outputpath = [];
+  var incr = ( path[0].x - path[path.length - 1].x ) / this.length;
+  var x = path[0].x;
+  var y = 0;
+  for( var i=0; i<length; i++ ) {
+    y = ( radius ^ 2 - ( x - centre.h ) ^ 2 ) ^ 0.5 + centre.k;
+    outputpath.push( { 'x': x, 'y': y } );
+    x += incr;
+  }
+  return outputpath;
+};
