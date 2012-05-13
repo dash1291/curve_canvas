@@ -9,6 +9,14 @@
 Circular = function( path, length ) {
   this.length = length;
   this.path = path;
+  
+  /**
+   * matA = [ x1-x2 y1-y2 ]
+   *        [ x2-x3 y2-y3 ]
+   *
+   * matB = [ (x1-x2)^2 + (y1-y2)^2 ]
+   *        [ (x2-x3)^2 + (y2-y3)^2 ]
+  **/
   matA[0][0] = path[0].x - path[1].x;
   matA[0][1] = path[0].y - path[1].y;
   matA[1][0] = path[1].x - path[2].x;
@@ -19,7 +27,7 @@ Circular = function( path, length ) {
   var centre = this.solveLinearEquations( matA, matB );
   var radius = ( ( centre.h - path[0].x ) ^ 2 + (centre.k - path[0].y ) ^ 2 ) ^ 0.5;
   return this.generatePath( centre, radius );
-}
+};
 
 /**
  * Solve a pair linear equations defined by coefficient matrix = matrix1, and
