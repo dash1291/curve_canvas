@@ -22,7 +22,7 @@ canvas = function( container, height, width ) {
   context = this.context = container.getContext( '2d' );
   context.strokeStyle = "#000000";
   context.lineJoin = "round";
-  context.lineWidth = "1";
+  context.lineWidth = "2";
   document.captureEvents( Event.MOUSEMOVE );
   container.onmousemove = this.mouseMove;
   container.onmouseup = this.mouseUp;
@@ -34,20 +34,34 @@ canvas = function( container, height, width ) {
 canvas.prototype.drawNew = function( x, y ) {
   lastdrawnX = this.lastdrawn.x;
   lastdrawnY = this.lastdrawn.y;
+  console.log( lastdrawnX );
   context = this.context;
   context.moveTo( lastdrawnX, lastdrawnY );
   context.lineTo( x, y );
   context.closePath();
   context.stroke();
-  this.lastdrawn = { 'x': x, 'y': y };
 };
 
 canvas.prototype.drawEnd = function() {
   this.buffer = []; //Clear the buffer
+  clearTimeout( this.interval );
+};
+
+canvas.prototype.drawBuffer = function() {
+  _this = window.canvas;
+  for( i in _this.buffer ) {
+    x = _this.buffer[i].x;
+    y = _this.buffer[i].y;
+    _this.drawNew( x, y );
+    _this.lastdrawn = { 'x': x, 'y': y };
+  }
+  _this.buffer = [];
+  _this.interval = setTimeout( _this.drawBuffer, 10 );
 };
 
 canvas.prototype.drawStart = function() {
-  this.interval = setTimeout( this.drawBuffer, 100 );
+  this.lastdrawn = { 'x': this.current_pos.x - 7, 'y': this.current_pos.y - 7 };
+  this.interval = setTimeout( this.drawBuffer, 10 );
 };
 
 canvas.prototype.loadImage = function() {
@@ -89,6 +103,7 @@ canvas.prototype.mouseUp = function(){
 canvas.prototype.mouseDown = function(){
   _this = this._model;
   _this.state = true;
+  _this.drawStart();
   var resize = _this.isResizing();
   if( resize ) {
     switch( resize ) {
@@ -128,12 +143,7 @@ canvas.prototype.mouseMove = function( e ){
   _this.current_pos.x = x = e.pageX;
   _this.current_pos.y = y = e.pageY;
   if( _this.state ) {
-    if( _this.lastdrawn ) {
-      _this.drawNew( x - 7, y - 7 );
-    }
-    else {
-      _this.lastdrawn = { 'x': x - 7, 'y': y - 7 };
-    }
+    _this.buffer.push( { 'x': x - 7, 'y': y - 7 } );
   }
   resize = _this.isResizing();
   if( resize ) {
