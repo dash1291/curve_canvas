@@ -61,7 +61,7 @@ canvas.prototype.drawBuffer = function() {
   _this = window.canvas;
   _this.drawPath( _this.buffer );
   _this.buffer = [];
-  _this.interval = setTimeout( _this.drawBuffer, 10 );
+  _this.interval = setTimeout( _this.drawBuffer, 20 );
 };
 
 canvas.prototype.smoothTempPath = function() {
@@ -71,9 +71,9 @@ canvas.prototype.smoothTempPath = function() {
   //this.destroyTempPath();
   //this.drawPath( smoothPath );
   this.lastdrawn = this.tempPath[0];
-  var smoothPath = new MovingAverageFitter( this.tempPath, 3 );
-  console.log(this.tempPath);
-  console.log(smoothPath.getOutputPath());
+  var smoothPath = new MovingAverageFitter( this.tempPath, 20 ).getOutputPath();
+  console.log(smoothPath);
+  this.drawPath( smoothPath );
 };
 
 canvas.prototype.destroyTempPath = function() {
