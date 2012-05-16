@@ -9,6 +9,7 @@ function init() {
 
 canvas = function( container, height, width ) {
   this.state = false;
+  this.tempPath = [];
   this.height = height;
   this.width = width;
   this.resizing = { 'right': false, 'down': false };
@@ -19,10 +20,11 @@ canvas = function( container, height, width ) {
   // Initialize the canvas element object
   this.container = container = document.getElementById( container );
   this.container._model = this;
-  context = this.context = container.getContext( '2d' );
+  context = container.getContext( '2d' );
   context.strokeStyle = "#000000";
   context.lineJoin = "round";
   context.lineWidth = "2";
+  this.context = context;
   document.captureEvents( Event.MOUSEMOVE );
   container.onmousemove = this.mouseMove;
   container.onmouseup = this.mouseUp;
@@ -34,7 +36,6 @@ canvas = function( container, height, width ) {
 canvas.prototype.drawNew = function( x, y ) {
   lastdrawnX = this.lastdrawn.x;
   lastdrawnY = this.lastdrawn.y;
-  console.log( lastdrawnX );
   context = this.context;
   context.moveTo( lastdrawnX, lastdrawnY );
   context.lineTo( x, y );
@@ -47,25 +48,48 @@ canvas.prototype.drawEnd = function() {
   clearTimeout( this.interval );
 };
 
+canvas.prototype.drawPath = function( path ) {
+  for( i in path ) {
+    x = path[i].x;
+    y = path[i].y;
+    this.drawNew( x, y );
+    this.lastdrawn = { 'x': x, 'y': y };
+  }
+};
+
 canvas.prototype.drawBuffer = function() {
   _this = window.canvas;
-  for( i in _this.buffer ) {
-    x = _this.buffer[i].x;
-    y = _this.buffer[i].y;
-    _this.drawNew( x, y );
-    _this.lastdrawn = { 'x': x, 'y': y };
-  }
+  _this.drawPath( _this.buffer );
   _this.buffer = [];
   _this.interval = setTimeout( _this.drawBuffer, 10 );
 };
 
+canvas.prototype.smoothTempPath = function() {
+  //var smoothPath = new TwoPassCorrection( this.tempPath, 3, 3 );
+  //console.log('out: ');console.log(smoothPath);
+  //console.log('in: ');console.log(this.tempPath);
+  //this.destroyTempPath();
+  //this.drawPath( smoothPath );
+  this.lastdrawn = this.tempPath[0];
+  var smoothPath = new MovingAverageFitter( this.tempPath, 3 );
+  console.log(this.tempPath);
+  console.log(smoothPath.getOutputPath());
+};
+
+canvas.prototype.destroyTempPath = function() {
+  this.context.strokeStyle = "#FFFFFF";
+  this.lastdrawn = this.tempPath[0];
+  this.drawPath( this.tempPath );
+  this.context.strokeStyle = "#000000";   
+}
+
+canvas.prototype.updateColor = function( context ) {
+
+}
+
 canvas.prototype.drawStart = function() {
   this.lastdrawn = { 'x': this.current_pos.x - 7, 'y': this.current_pos.y - 7 };
   this.interval = setTimeout( this.drawBuffer, 10 );
-};
-
-canvas.prototype.loadImage = function() {
-
 };
 
 canvas.prototype.changeCursor = function( type ) {
@@ -91,6 +115,8 @@ canvas.prototype.mouseOut = function() {
   _this.lastdrawn = null;
   _this.drawEnd();
   _this.state = _this.resizing.down = _this.resizing.right = false;
+  _this.smoothTempPath();
+  _this.tempPath = [];
 };
 
 canvas.prototype.mouseUp = function(){
@@ -98,6 +124,8 @@ canvas.prototype.mouseUp = function(){
   _this.state = false;
   _this.lastdrawn = null;
   _this.drawEnd();
+  _this.smoothTempPath();
+  _this.tempPath = [];
 };
 
 canvas.prototype.mouseDown = function(){
@@ -143,7 +171,9 @@ canvas.prototype.mouseMove = function( e ){
   _this.current_pos.x = x = e.pageX;
   _this.current_pos.y = y = e.pageY;
   if( _this.state ) {
-    _this.buffer.push( { 'x': x - 7, 'y': y - 7 } );
+    var point =  { 'x': x - 7, 'y': y - 7 };
+    _this.buffer.push( point );
+    _this.tempPath.push( point );
   }
   resize = _this.isResizing();
   if( resize ) {

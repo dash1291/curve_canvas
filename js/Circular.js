@@ -9,7 +9,9 @@
 Circular = function( path, length ) {
   this.length = length;
   this.path = path;
-  
+  var matA = [[], []];
+  var matB = [[], []];
+   
   /**
    * matA = [ x1-x2 y1-y2 ]
    *        [ x2-x3 y2-y3 ]
@@ -17,16 +19,18 @@ Circular = function( path, length ) {
    * matB = [ (x1-x2)^2 + (y1-y2)^2 ]
    *        [ (x2-x3)^2 + (y2-y3)^2 ]
   **/
-  matA[0][0] = path[0].x - path[1].x;
-  matA[0][1] = path[0].y - path[1].y;
-  matA[1][0] = path[1].x - path[2].x;
-  matA[1][1] = path[1].y - path[2].y;
-
+  var abs = Math.abs;
+  matA[0][0] = 2 * ( path[0].x - path[1].x );
+  matA[0][1] = 2 * ( path[0].y - path[1].y );
+  matA[1][0] = 2 * ( path[1].x - path[2].x );
+  matA[1][1] = 2 * ( path[1].y - path[2].y );
+  //console.log('hi');
+  //console.log(path);
+  //console.log(matA)
   matB[0] = ( path[0].x ^ 2 - path[1].x ^ 2 ) + ( path[0].y ^ 2  - path[1].y ^ 2 );
   matB[1] = ( path[1].x ^ 2 - path[2].x ^ 2 ) + ( path[1].y ^ 2  - path[2].y ^ 2 );
-  var centre = this.solveLinearEquations( matA, matB );
-  var radius = ( ( centre.h - path[0].x ) ^ 2 + (centre.k - path[0].y ) ^ 2 ) ^ 0.5;
-  return this.generatePath( centre, radius );
+  this.centre = this.solveLinearEquations( matA, matB );
+  this.radius = ( ( this.centre.h - path[0].x ) ^ 2 + (this.centre.k - path[0].y ) ^ 2 ) ^ 0.5;
 };
 
 /**
@@ -43,24 +47,17 @@ Circular = function( path, length ) {
  *         [ c2 b2 ]        [ a2 b2 ]
 **/
 Circular.prototype.solveLinearEquations = function( matrix1, matrix2 ) {
-  var det1 = matrix1[0][0] * matrix1[1][1] - matrix[0][1] * matrix[1,0];
-  var det2 = matrix2[0] * matrix1[1][1] - matrix2[1] * matrix[0][1];
-  var det3 = matrix2[1] * matrix1[0][0] - matrix2[0] * matrix[1][0];
+  var det1 = matrix1[0][0] * matrix1[1][1] - matrix1[0][1] * matrix1[1][0];
+  var det2 = matrix2[0] * matrix1[1][1] - matrix2[1] * matrix1[0][1];
+  var det3 = matrix2[1] * matrix1[0][0] - matrix2[0] * matrix1[1][0];
   var h = det2 / det1;
   var k = det3 / det1;
   return { 'h': h, 'k': k };
 };
 
-Circular.prototype.generatePath = function( centre, radius ) {
-  var path = this.path;
-  var outputpath = [];
-  var incr = ( path[0].x - path[path.length - 1].x ) / this.length;
-  var x = path[0].x;
-  var y = 0;
-  for( var i=0; i<length; i++ ) {
-    y = ( radius ^ 2 - ( x - centre.h ) ^ 2 ) ^ 0.5 + centre.k;
-    outputpath.push( { 'x': x, 'y': y } );
-    x += incr;
-  }
-  return outputpath;
+Circular.prototype.Y = function( x, centre, radius ) {
+  centre = this.centre;
+  radius = this.radius;
+  var yval = ( ( radius ^ 2 - ( x - centre.h ) ^ 2 ));
+  return yval;
 };
