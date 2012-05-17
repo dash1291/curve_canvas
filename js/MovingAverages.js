@@ -4,13 +4,14 @@
 
 MovingAverageFitter = function( path, span ) {
   this.path = path;
+  this.output = [];
   this.span = span;
   this.filterX();
 }
 
 MovingAverageFitter.prototype.filterX = function() {
   var spanhalf_orig = ( this.span - 1 ) / 2;
-
+  var xS = 0, yS = 0;
   var spanhalf_dyn = spanhalf_orig;
   for( i in this.path ) {
     if( i < spanhalf_orig ) { spanhalf_dyn = i; }
@@ -28,12 +29,13 @@ MovingAverageFitter.prototype.filterX = function() {
     }
     x += this.path[i].x;
     y += this.path[i].y;
-    this.path[i].x = x / ( ( spanhalf_dyn * 2 ) + 1 );
-    this.path[i].y = y / ( ( spanhalf_dyn * 2 ) + 1 );
+    xS = x / ( ( spanhalf_dyn * 2 ) + 1 );
+    yS = y / ( ( spanhalf_dyn * 2 ) + 1 );
+    this.output.push( { 'x': xS, 'y': yS } );
     spanhalf_dyn = spanhalf_orig;
   }
 };
 
 MovingAverageFitter.prototype.getOutputPath = function() {
-  return this.path;
+  return this.output;
 };

@@ -34,13 +34,16 @@ canvas = function( container, height, width ) {
 };
 
 canvas.prototype.drawNew = function( x, y ) {
+
   lastdrawnX = this.lastdrawn.x;
   lastdrawnY = this.lastdrawn.y;
   context = this.context;
+  context.beginPath();
   context.moveTo( lastdrawnX, lastdrawnY );
   context.lineTo( x, y );
-  context.closePath();
   context.stroke();
+  context.closePath();
+  console.log(this.lastdrawn);
 };
 
 canvas.prototype.drawEnd = function() {
@@ -48,10 +51,18 @@ canvas.prototype.drawEnd = function() {
   clearTimeout( this.interval );
 };
 
-canvas.prototype.drawPath = function( path ) {
+canvas.prototype.drawPath = function( path, color ) {
+  if( typeof color == 'string' ) {
+    this.context.strokeStyle = color;
+  }
+  else {
+    this.context.strokeStyle = "#000000";
+  }
   for( i in path ) {
     x = path[i].x;
     y = path[i].y;
+    console.log('1');
+    console.log(x+','+y+','+i);
     this.drawNew( x, y );
     this.lastdrawn = { 'x': x, 'y': y };
   }
@@ -69,18 +80,19 @@ canvas.prototype.smoothTempPath = function() {
   //console.log('out: ');console.log(smoothPath);
   //console.log('in: ');console.log(this.tempPath);
   //this.destroyTempPath();
-  //this.drawPath( smoothPath );
+  //this.drawPath( smoothPath )
+  this.destroyTempPath();
+  var smoothPath = new MovingAverageFitter( this.tempPath, 11 ).getOutputPath();
   this.lastdrawn = this.tempPath[0];
-  var smoothPath = new MovingAverageFitter( this.tempPath, 20 ).getOutputPath();
+  this.drawPath( smoothPath, 'green' );
+  console.log('here');
+  console.log(this.tempPath);
   console.log(smoothPath);
-  this.drawPath( smoothPath );
 };
 
 canvas.prototype.destroyTempPath = function() {
-  this.context.strokeStyle = "#FFFFFF";
   this.lastdrawn = this.tempPath[0];
-  this.drawPath( this.tempPath );
-  this.context.strokeStyle = "#000000";   
+  this.drawPath( this.tempPath, 'white' );
 }
 
 canvas.prototype.updateColor = function( context ) {
@@ -111,12 +123,14 @@ canvas.prototype.changeCursor = function( type ) {
 
 canvas.prototype.mouseOut = function() {
   _this = this._model;
-  _this.state = false;
   _this.lastdrawn = null;
   _this.drawEnd();
   _this.state = _this.resizing.down = _this.resizing.right = false;
-  _this.smoothTempPath();
-  _this.tempPath = [];
+  if( _this.state == true ) {
+    _this.state = false;
+    _this.smoothTempPath();
+    _this.tempPath = [];
+  }
 };
 
 canvas.prototype.mouseUp = function(){
