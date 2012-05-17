@@ -16,6 +16,8 @@ canvas = function( container, height, width ) {
   this.current_pos = { 'x': 0, 'y': 0 };
   this.buffer = [];
   this.lastdrawn = null;
+  this.history = [];
+  this.historyIndex = -1;
 
   // Initialize the canvas element object
   this.container = container = document.getElementById( container );
@@ -43,15 +45,48 @@ canvas.prototype.drawNew = function( x, y ) {
   context.lineTo( x, y );
   context.stroke();
   context.closePath();
-  console.log(this.lastdrawn);
 };
 
+canvas.prototype.newHistory = function( path ) {
+  this.history = this.history.slice( 0, this.historyIndex + 1 );
+  this.history.push( path );
+  this.historyIndex++;
+};
+
+canvas.prototype.undo = function( ) {
+  if( this.historyIndex > -1 ) {
+    var path = this.history[ this.historyIndex ];
+    this.destroyPath( path );
+    this.historyIndex--;
+    if( this.historyIndex > -1 ) {
+      path = this.history[ this.historyIndex ];
+      this.drawPath( path, 'green' );
+    }
+  }
+  this.lastdrawn = null;
+};
+
+canvas.prototype.redo = function() {
+  if( this.historyIndex < this.history.length - 1 ) {
+    if( this.historyIndex > -1 ) {
+      var path = this.history[ this.historyIndex ];
+      //this.destroyPath( path );
+    }
+    path = this.history[ ++this.historyIndex ];
+    this.drawPath( path, 'green' );
+  }
+  this.lastdrawn = null;
+};
+  
 canvas.prototype.drawEnd = function() {
   this.buffer = []; //Clear the buffer
   clearTimeout( this.interval );
 };
 
 canvas.prototype.drawPath = function( path, color ) {
+  if( this.lastdrawn == null ) {
+    this.lastdrawn = path[0];
+  }
   if( typeof color == 'string' ) {
     this.context.strokeStyle = color;
   }
@@ -61,8 +96,6 @@ canvas.prototype.drawPath = function( path, color ) {
   for( i in path ) {
     x = path[i].x;
     y = path[i].y;
-    console.log('1');
-    console.log(x+','+y+','+i);
     this.drawNew( x, y );
     this.lastdrawn = { 'x': x, 'y': y };
   }
@@ -81,18 +114,17 @@ canvas.prototype.smoothTempPath = function() {
   //console.log('in: ');console.log(this.tempPath);
   //this.destroyTempPath();
   //this.drawPath( smoothPath )
-  this.destroyTempPath();
-  var smoothPath = new MovingAverageFitter( this.tempPath, 11 ).getOutputPath();
+  this.destroyPath( this.tempPath );
+  var smoothPath = new MovingAverageFitter( this.tempPath, 15 ).getOutputPath();
   this.lastdrawn = this.tempPath[0];
   this.drawPath( smoothPath, 'green' );
-  console.log('here');
-  console.log(this.tempPath);
-  console.log(smoothPath);
+  this.newHistory( smoothPath );
 };
 
-canvas.prototype.destroyTempPath = function() {
-  this.lastdrawn = this.tempPath[0];
-  this.drawPath( this.tempPath, 'white' );
+canvas.prototype.destroyPath = function( path ) {
+  this.lastdrawn = path[0];
+  this.drawPath( path, 'white' );
+  this.lastdrawn = null;
 }
 
 canvas.prototype.updateColor = function( context ) {
