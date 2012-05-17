@@ -114,16 +114,20 @@ canvas.prototype.smoothTempPath = function() {
   //console.log('in: ');console.log(this.tempPath);
   //this.destroyTempPath();
   //this.drawPath( smoothPath )
-  this.destroyPath( this.tempPath );
-  var smoothPath = new MovingAverageFitter( this.tempPath, 15 ).getOutputPath();
-  this.lastdrawn = this.tempPath[0];
-  this.drawPath( smoothPath, 'green' );
-  this.newHistory( smoothPath );
+  if( this.tempPath.length > 1 ) {
+    this.destroyPath( this.tempPath );
+    var smoothPath = new MovingAverageFitter( this.tempPath, 15 ).getOutputPath();
+    this.lastdrawn = this.tempPath[0];
+    this.drawPath( smoothPath, 'green' );
+    this.newHistory( smoothPath );
+  }
 };
 
 canvas.prototype.destroyPath = function( path ) {
   this.lastdrawn = path[0];
+  this.context.lineWidth = 3.5;
   this.drawPath( path, 'white' );
+  this.context.lineWidth = 2;
   this.lastdrawn = null;
 }
 
@@ -178,6 +182,11 @@ canvas.prototype.mouseDown = function(){
   _this = this._model;
   _this.state = true;
   _this.drawStart();
+  var x = _this.current_pos.x;
+  var y = _this.current_pos.y;
+  var point = { 'x': x - 7, 'y': y - 7 }; 
+  _this.buffer.push( point );
+  _this.tempPath.push( point );
   var resize = _this.isResizing();
   if( resize ) {
     switch( resize ) {
