@@ -18,6 +18,7 @@ canvas = function( container, height, width ) {
   this.lastdrawn = null;
   this.history = [];
   this.historyIndex = -1;
+  this.spanLength = 11;
 
   // Initialize the canvas element object
   this.container = container = document.getElementById( container );
@@ -77,7 +78,16 @@ canvas.prototype.redo = function() {
   }
   this.lastdrawn = null;
 };
-  
+
+canvas.prototype.setSpan = function( spanElement ) {
+  span = spanElement.value;
+  if( span % 2 == 0 ) {
+    span = span - 1;
+  }
+  this.spanLength = span;
+  spanElement.value = span;
+};
+
 canvas.prototype.drawEnd = function() {
   this.buffer = []; //Clear the buffer
   clearTimeout( this.interval );
@@ -116,7 +126,7 @@ canvas.prototype.smoothTempPath = function() {
   //this.drawPath( smoothPath )
   if( this.tempPath.length > 1 ) {
     this.destroyPath( this.tempPath );
-    var smoothPath = new MovingAverageFitter( this.tempPath, 15 ).getOutputPath();
+    var smoothPath = new MovingAverageFitter( this.tempPath, this.spanLength ).getOutputPath();
     this.lastdrawn = this.tempPath[0];
     this.drawPath( smoothPath, 'green' );
     this.newHistory( smoothPath );
